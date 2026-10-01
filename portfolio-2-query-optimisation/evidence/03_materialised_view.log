@@ -1,0 +1,51 @@
+Pager usage is off.
+SET
+psql:03_materialised_view.sql:10: NOTICE:  materialized view "mv_customer_spend" does not exist, skipping
+DROP MATERIALIZED VIEW
+SELECT 19819
+CREATE INDEX
+CREATE INDEX
+ANALYZE
+### Q4 re-written to read the materialised view
+                                                                                 QUERY PLAN                                                                                 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Incremental Sort  (cost=248.58..3227.76 rows=19819 width=27) (actual time=2.983..3.279 rows=36 loops=1)
+   Sort Key: r.shipping_country, r.rnk
+   Presorted Key: r.shipping_country
+   Full-sort Groups: 2  Sort Method: quicksort  Average Memory: 27kB  Peak Memory: 27kB
+   Buffers: shared hit=19671 read=77
+   ->  Subquery Scan on r  (cost=0.29..1920.50 rows=19819 width=27) (actual time=0.012..3.270 rows=36 loops=1)
+         Buffers: shared hit=19671 read=77
+         ->  WindowAgg  (cost=0.29..1722.31 rows=19819 width=35) (actual time=0.011..3.267 rows=36 loops=1)
+               Run Condition: (rank() OVER (?) <= 3)
+               Buffers: shared hit=19671 read=77
+               ->  Index Scan using idx_mv_customer_spend_rank on mv_customer_spend  (cost=0.29..1375.47 rows=19819 width=19) (actual time=0.008..2.723 rows=19819 loops=1)
+                     Buffers: shared hit=19671 read=77
+ Planning:
+   Buffers: shared hit=25 read=2
+ Planning Time: 0.258 ms
+ Execution Time: 3.718 ms
+(16 rows)
+
+### Staleness demonstration: the view is a snapshot until it is refreshed
+ view_spend_before 
+-------------------
+          33834.53
+(1 row)
+
+UPDATE 1
+ live_spend_after_update | stale_view_spend 
+-------------------------+------------------
+                34834.53 |         33834.53
+(1 row)
+
+### Refresh without blocking readers (CONCURRENTLY needs the UNIQUE index above)
+Timing is on.
+REFRESH MATERIALIZED VIEW
+Time: 146.848 ms
+Timing is off.
+ view_spend_after_refresh 
+--------------------------
+                 34834.53
+(1 row)
+

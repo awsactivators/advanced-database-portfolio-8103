@@ -1,0 +1,134 @@
+Pager usage is off.
+SET
+### Q1  Order history for one client (look-up by e-mail, then by customer_id)
+                                                                 QUERY PLAN                                                                  
+---------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=36.02..36.04 rows=6 width=31) (actual time=0.271..0.455 rows=6 loops=1)
+   Sort Key: o.order_date DESC
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=14 read=1
+   ->  Nested Loop  (cost=4.75..35.95 rows=6 width=31) (actual time=0.190..0.235 rows=6 loops=1)
+         Buffers: shared hit=11 read=1
+         ->  Index Scan using customers_email_key on customers c  (cost=0.29..8.30 rows=1 width=8) (actual time=0.012..0.012 rows=1 loops=1)
+               Index Cond: ((email)::text = 'client4242@example.com'::text)
+               Buffers: shared hit=3
+         ->  Bitmap Heap Scan on orders o  (cost=4.46..27.58 rows=6 width=39) (actual time=0.175..0.218 rows=6 loops=1)
+               Recheck Cond: (c.customer_id = customer_id)
+               Heap Blocks: exact=6
+               Buffers: shared hit=8 read=1
+               ->  Bitmap Index Scan on idx_orders_customer_date  (cost=0.00..4.46 rows=6 width=0) (actual time=0.163..0.163 rows=6 loops=1)
+                     Index Cond: (customer_id = c.customer_id)
+                     Buffers: shared hit=2 read=1
+ Planning:
+   Buffers: shared hit=286 read=8
+ Planning Time: 4.840 ms
+ Execution Time: 0.724 ms
+(20 rows)
+
+### Q2  Monthly revenue by shipping country, last 12 months, settled orders only
+                                                                             QUERY PLAN                                                                             
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Incremental Sort  (cost=3966.15..6375.24 rows=34416 width=43) (actual time=28.980..33.365 rows=144 loops=1)
+   Sort Key: (date_trunc('month'::text, order_date)), (sum(total_amount)) DESC
+   Presorted Key: (date_trunc('month'::text, order_date))
+   Full-sort Groups: 4  Sort Method: quicksort  Average Memory: 26kB  Peak Memory: 26kB
+   Buffers: shared hit=7 read=172
+   ->  GroupAggregate  (cost=3966.12..4826.52 rows=34416 width=43) (actual time=27.262..33.057 rows=144 loops=1)
+         Group Key: (date_trunc('month'::text, order_date)), shipping_country
+         Buffers: shared hit=4 read=172
+         ->  Sort  (cost=3966.12..4052.16 rows=34416 width=18) (actual time=26.965..28.348 rows=34336 loops=1)
+               Sort Key: (date_trunc('month'::text, order_date)), shipping_country
+               Sort Method: quicksort  Memory: 2974kB
+               Buffers: shared hit=4 read=172
+               ->  Index Only Scan using idx_orders_date_settled on orders  (cost=0.42..1372.74 rows=34416 width=18) (actual time=0.485..17.337 rows=34336 loops=1)
+                     Index Cond: (order_date >= '2025-10-01 00:00:00-04'::timestamp with time zone)
+                     Heap Fetches: 0
+                     Buffers: shared hit=1 read=172
+ Planning:
+   Buffers: shared hit=88
+ Planning Time: 0.257 ms
+ Execution Time: 33.443 ms
+(20 rows)
+
+### Q3  Ten best-selling products (by revenue) in collection "AW 2025"
+                                                                                       QUERY PLAN                                                                                       
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=1634.50..1634.52 rows=10 width=60) (actual time=29.262..29.263 rows=10 loops=1)
+   Buffers: shared hit=20437 read=35
+   ->  Sort  (cost=1634.50..1635.10 rows=240 width=60) (actual time=29.261..29.262 rows=10 loops=1)
+         Sort Key: (sum(((oi.quantity)::numeric * oi.unit_price))) DESC
+         Sort Method: quicksort  Memory: 26kB
+         Buffers: shared hit=20437 read=35
+         ->  HashAggregate  (cost=1626.31..1629.31 rows=240 width=60) (actual time=29.247..29.251 rows=20 loops=1)
+               Group Key: p.sku, p.product_name
+               Batches: 1  Memory Usage: 45kB
+               Buffers: shared hit=20437 read=35
+               ->  Nested Loop  (cost=0.57..1376.31 rows=20000 width=38) (actual time=0.025..25.077 rows=20000 loops=1)
+                     Buffers: shared hit=20437 read=35
+                     ->  Nested Loop  (cost=0.28..33.32 rows=200 width=36) (actual time=0.013..0.232 rows=200 loops=1)
+                           Buffers: shared hit=72
+                           ->  Nested Loop  (cost=0.00..10.55 rows=20 width=36) (actual time=0.009..0.042 rows=20 loops=1)
+                                 Join Filter: (c.collection_id = p.collection_id)
+                                 Rows Removed by Join Filter: 220
+                                 Buffers: shared hit=5
+                                 ->  Seq Scan on collections c  (cost=0.00..1.15 rows=1 width=4) (actual time=0.005..0.008 rows=1 loops=1)
+                                       Filter: ((collection_name)::text = 'AW 2025'::text)
+                                       Rows Removed by Filter: 11
+                                       Buffers: shared hit=1
+                                 ->  Seq Scan on products p  (cost=0.00..6.40 rows=240 width=40) (actual time=0.002..0.019 rows=240 loops=1)
+                                       Buffers: shared hit=4
+                           ->  Index Scan using variants_product_id_size_label_colour_key on variants v  (cost=0.28..1.04 rows=10 width=16) (actual time=0.008..0.009 rows=10 loops=20)
+                                 Index Cond: (product_id = p.product_id)
+                                 Buffers: shared hit=67
+                     ->  Index Scan using idx_order_items_variant on order_items oi  (cost=0.29..5.71 rows=100 width=18) (actual time=0.028..0.119 rows=100 loops=200)
+                           Index Cond: (variant_id = v.variant_id)
+                           Buffers: shared hit=20365 read=35
+ Planning:
+   Buffers: shared hit=312 read=5
+ Planning Time: 2.562 ms
+ Execution Time: 29.295 ms
+(34 rows)
+
+### Q4  Top 3 spenders in each shipping country (window function)
+                                                                 QUERY PLAN                                                                  
+---------------------------------------------------------------------------------------------------------------------------------------------
+ Incremental Sort  (cost=6191.75..7407.31 rows=18653 width=51) (actual time=56.555..56.647 rows=36 loops=1)
+   Sort Key: spend.shipping_country, (rank() OVER (?))
+   Presorted Key: spend.shipping_country
+   Full-sort Groups: 2  Sort Method: quicksort  Average Memory: 27kB  Peak Memory: 27kB
+   Buffers: shared hit=2125, temp read=4 written=27
+   ->  WindowAgg  (cost=6186.83..6559.89 rows=18653 width=51) (actual time=55.373..56.615 rows=36 loops=1)
+         Run Condition: (rank() OVER (?) <= 3)
+         Buffers: shared hit=2122, temp read=4 written=27
+         ->  Sort  (cost=6186.83..6233.47 rows=18653 width=43) (actual time=55.358..55.889 rows=19819 loops=1)
+               Sort Key: spend.shipping_country, spend.total_spend DESC
+               Sort Method: quicksort  Memory: 1697kB
+               Buffers: shared hit=2122, temp read=4 written=27
+               ->  Subquery Scan on spend  (cost=4630.51..4863.67 rows=18653 width=43) (actual time=37.870..41.695 rows=19819 loops=1)
+                     Buffers: shared hit=2122, temp read=4 written=27
+                     ->  HashAggregate  (cost=4630.51..4863.67 rows=18653 width=43) (actual time=37.869..40.945 rows=19819 loops=1)
+                           Group Key: o.shipping_country, o.customer_id
+                           Batches: 5  Memory Usage: 8241kB  Disk Usage: 200kB
+                           Buffers: shared hit=2122, temp read=4 written=27
+                           ->  Seq Scan on orders o  (cost=0.00..3922.00 rows=94468 width=18) (actual time=1.931..18.114 rows=94279 loops=1)
+                                 Filter: (status = ANY ('{paid,in_production,shipped,delivered}'::text[]))
+                                 Rows Removed by Filter: 25721
+                                 Buffers: shared hit=2122
+ Planning:
+   Buffers: shared hit=6
+ Planning Time: 0.296 ms
+ Execution Time: 57.190 ms
+(26 rows)
+
+### Q5  Stale pending orders (pending for more than 30 days) needing follow-up
+                                                                  QUERY PLAN                                                                   
+-----------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=0.29..27.21 rows=50 width=31) (actual time=0.161..0.194 rows=50 loops=1)
+   Buffers: shared hit=50 read=2
+   ->  Index Scan using idx_orders_pending_date on orders  (cost=0.29..8971.86 rows=16662 width=31) (actual time=0.161..0.191 rows=50 loops=1)
+         Index Cond: (order_date < '2026-08-31 00:00:00-04'::timestamp with time zone)
+         Buffers: shared hit=50 read=2
+ Planning Time: 0.059 ms
+ Execution Time: 0.199 ms
+(7 rows)
+
