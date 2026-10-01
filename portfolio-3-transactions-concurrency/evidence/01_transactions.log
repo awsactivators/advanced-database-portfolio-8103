@@ -1,0 +1,68 @@
+Pager usage is off.
+UPDATE 1
+DELETE 0
+=== Example 1: successful transaction -> COMMIT (Atomicity + Durability)
+BEGIN
+INSERT 0 1
+INSERT 0 1
+UPDATE 1
+UPDATE 1
+INSERT 0 1
+INSERT 0 1
+COMMIT
+ variant_id | stock_qty 
+------------+-----------
+          1 |         2
+(1 row)
+
+=== Example 2: business rule violated mid-way -> ROLLBACK (Atomicity + Consistency)
+Trying to buy 5 items when only 2 remain; the CHECK (stock_qty >= 0) constraint rejects it.
+BEGIN
+INSERT 0 1
+psql:01_transactions.sql:34: ERROR:  new row for relation "variants" violates check constraint "variants_stock_qty_check"
+DETAIL:  Failing row contains (1, 1, XS, Ivory, -3).
+ROLLBACK
+ orphan_orders_left_behind 
+---------------------------
+                         0
+(1 row)
+
+ variant_id | stock_unchanged 
+------------+-----------------
+          1 |               2
+(1 row)
+
+=== Example 3: SAVEPOINT, keep the order but undo a failed optional step (gift-wrap)
+BEGIN
+INSERT 0 1
+SAVEPOINT
+psql:01_transactions.sql:44: ERROR:  insert or update on table "stock_movements" violates foreign key constraint "stock_movements_variant_id_fkey"
+DETAIL:  Key (variant_id)=(999999) is not present in table "variants".
+ROLLBACK
+UPDATE 1
+COMMIT
+ order_id | status 
+----------+--------
+   120003 | paid
+(1 row)
+
+CREATE FUNCTION
+=== Example 4: place_order() succeeds, then fails cleanly when stock is exhausted
+UPDATE 1
+ first_order_id 
+----------------
+         120004
+(1 row)
+
+ stock_qty 
+-----------
+         0
+(1 row)
+
+psql:01_transactions.sql:87: ERROR:  Insufficient stock for variant 2
+CONTEXT:  PL/pgSQL function place_order(bigint,bigint,integer,text) line 14 at RAISE
+ stock_still_zero_not_negative 
+-------------------------------
+                             0
+(1 row)
+

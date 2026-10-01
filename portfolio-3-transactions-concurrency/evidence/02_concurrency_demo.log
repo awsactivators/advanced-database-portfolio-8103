@@ -1,0 +1,24 @@
+======================================================================
+A. NAIVE read-modify-write at READ COMMITTED (expected: overselling)
+   buyer 0: ORDER ACCEPTED
+   buyer 1: ORDER ACCEPTED
+   final stock = 0  (1 item existed, 2 orders accepted -> LOST UPDATE)
+======================================================================
+B. FIX 1, SELECT ... FOR UPDATE (second buyer waits, then sees stock 0)
+   buyer 0: ORDER ACCEPTED
+   buyer 1: rejected (sold out), saw stock 0
+   final stock = 0
+======================================================================
+C. FIX 2, SERIALIZABLE isolation with retry
+   buyer 0: SerializationFailure (40001) -> retrying
+   buyer 0: rejected (sold out) on attempt 2
+   buyer 1: ORDER ACCEPTED on attempt 1
+   final stock = 0
+======================================================================
+D1. DEADLOCK, sessions lock variants in opposite order
+   session 0 (opposite order): committed
+   session 1 (opposite order): ABORTED by deadlock detector (40P01)
+D2. FIX, both sessions lock in the SAME (ascending) order
+   session 0 (same order): committed
+   session 1 (same order): committed
+======================================================================
