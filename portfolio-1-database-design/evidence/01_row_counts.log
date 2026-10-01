@@ -1,0 +1,11 @@
+      t      | count  
+-------------+--------
+ customers   |  20000
+ fittings    |  57632
+ order_items | 240000
+ orders      | 120000
+ payments    |  94279
+ products    |    240
+ variants    |   2400
+(7 rows)
+
