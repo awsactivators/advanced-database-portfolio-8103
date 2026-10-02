@@ -1,0 +1,13 @@
+1. CART (hash with TTL)
+   cart: {'AV-00007:M:Noir': '2', 'AV-00012:S:Ivory': '2'} | TTL seconds: 86400
+2. SESSION (string with short TTL)
+   exists now: True
+   exists after TTL: False (expired automatically)
+3. CACHE-ASIDE price look-up: PostgreSQL vs Redis
+   PostgreSQL median: 0.076 ms   Redis HIT median: 0.036 ms
+   (both measured through a Python client on the same machine, so absolute numbers are indicative only)
+   Invalidation: a price change must delete the cached copy, otherwise readers see stale data
+   cached (stale): 2200.25 | database: 2210.25
+   after invalidation -> (2210.25, 'MISS')
+4. TRENDING (sorted set)
+   top 3: [('AV-00001', 8.0), ('AV-00007', 5.0), ('AV-00012', 3.0)]

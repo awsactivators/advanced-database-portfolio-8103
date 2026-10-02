@@ -1,0 +1,102 @@
+--- Gowns that have a 'neckline' attribute (attribute exists only on gowns)
+[
+  {
+    _id: 'AV-00198',
+    name: 'Bias Gown No.198',
+    attributes: {
+      neckline: 'sweetheart'
+    }
+  },
+  {
+    _id: 'AV-00168',
+    name: 'Bias Gown No.168',
+    attributes: {
+      neckline: 'sweetheart'
+    }
+  },
+  {
+    _id: 'AV-00216',
+    name: 'Bias Gown No.216',
+    attributes: {
+      neckline: 'sweetheart'
+    }
+  }
+]
+--- Products with any variant of size M in Noir with stock > 30
+[
+  {
+    _id: 'AV-00004',
+    name: 'Cashmere Sweater No.4'
+  },
+  {
+    _id: 'AV-00006',
+    name: 'Bias Gown No.6'
+  },
+  {
+    _id: 'AV-00002',
+    name: 'Wool Dress No.2'
+  }
+]
+--- Stock and average price per collection
+[
+  {
+    _id: 'AW 2024',
+    totalStock: 4368,
+    avgPrice: 1539.5510000000002
+  },
+  {
+    _id: 'AW 2026',
+    totalStock: 4289,
+    avgPrice: 1492.9415
+  },
+  {
+    _id: 'RESORT 2026',
+    totalStock: 4150,
+    avgPrice: 1379.5735
+  },
+  {
+    _id: 'RESORT 2025',
+    totalStock: 4142,
+    avgPrice: 1583.882
+  },
+  {
+    _id: 'COUTURE 2026',
+    totalStock: 4052,
+    avgPrice: 1247.2595
+  },
+  {
+    _id: 'RESORT 2024',
+    totalStock: 3992,
+    avgPrice: 1586.7885
+  },
+  {
+    _id: 'SS 2024',
+    totalStock: 3952,
+    avgPrice: 1528.4720000000002
+  },
+  {
+    _id: 'COUTURE 2024',
+    totalStock: 3938,
+    avgPrice: 1365.7020000000002
+  },
+  {
+    _id: 'AW 2025',
+    totalStock: 3904,
+    avgPrice: 1441.8675
+  },
+  {
+    _id: 'SS 2026',
+    totalStock: 3858,
+    avgPrice: 1823.59
+  },
+  {
+    _id: 'SS 2025',
+    totalStock: 3848,
+    avgPrice: 1925.513
+  },
+  {
+    _id: 'COUTURE 2025',
+    totalStock: 3775,
+    avgPrice: 1336.0075
+  }
+]

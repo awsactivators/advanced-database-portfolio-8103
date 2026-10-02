@@ -1,0 +1,74 @@
+Wrote 240 product documents to /Users/Genevieve/Documents/Miva-MIT/Advanced Database/advanced-database-portfolio-8103/portfolio-4-nosql/products.json
+Example document:
+{
+  "_id": "AV-00001",
+  "name": "Silk Coat No.1",
+  "category": "coat",
+  "basePrice": 2200.25,
+  "madeToOrder": false,
+  "leadTimeDays": 0,
+  "collection": {
+    "name": "SS 2025",
+    "season": "SS",
+    "year": 2025
+  },
+  "attributes": {
+    "fabricComposition": {
+      "wool": 80,
+      "cashmere": 20
+    },
+    "insulation": "light"
+  },
+  "variants": [
+    {
+      "size": "XS",
+      "colour": "Ivory",
+      "stock": 2
+    },
+    {
+      "size": "XS",
+      "colour": "Noir",
+      "stock": 0
+    },
+    {
+      "size": "S",
+      "colour": "Ivory",
+      "stock": 35
+    },
+    {
+      "size": "S",
+      "colour": "Noir",
+      "stock": 6
+    },
+    {
+      "size": "M",
+      "colour": "Ivory",
+      "stock": 5
+    },
+    {
+      "size": "M",
+      "colour": "Noir",
+      "stock": 4
+    },
+    {
+      "size": "L",
+      "colour": "Ivory",
+      "stock": 23
+    },
+    {
+      "size": "L",
+      "colour": "Noir",
+      "stock": 9
+    },
+    {
+      "size": "XL",
+      "colour": "Ivory",
+      "stock": 30
+    },
+    {
+      "size": "XL",
+      "colour": "Noir",
+      "stock": 0
+    }
+  ]
+}

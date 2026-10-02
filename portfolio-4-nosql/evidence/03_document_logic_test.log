@@ -1,0 +1,10 @@
+Loaded 240 documents
+gowns with neckline: 40; neckline exists ONLY on gowns -> True
+products with an M/Noir variant holding > 30 units: 57
+new attribute added to ONE document only, no ALTER TABLE, other documents untouched
+top 3 collections by stock:
+   AW 2024        stock= 4368  avgPrice=1539.55
+   AW 2026        stock= 4289  avgPrice=1492.94
+   RESORT 2026    stock= 4150  avgPrice=1379.57
+Stock totals per collection identical in PostgreSQL and in the documents: True
+ALL CHECKS PASSED
