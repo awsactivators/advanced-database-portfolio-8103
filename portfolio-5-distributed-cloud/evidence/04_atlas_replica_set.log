@@ -1,0 +1,16 @@
+{
+  setName: 'atlas-f1cw7x-shard-0',
+  hosts: [
+    'ac-sjezljq-shard-00-00.adl2z5x.mongodb.net:27017',
+    'ac-sjezljq-shard-00-01.adl2z5x.mongodb.net:27017',
+    'ac-sjezljq-shard-00-02.adl2z5x.mongodb.net:27017'
+  ],
+  primary: 'ac-sjezljq-shard-00-02.adl2z5x.mongodb.net:27017',
+  me: 'ac-sjezljq-shard-00-02.adl2z5x.mongodb.net:27017',
+  isWritablePrimary: true
+}
+answered by: ac-sjezljq-shard-00-02.adl2z5x.mongodb.net:27017 | secondary: false
+products visible: 240
+primary: ac-sjezljq-shard-00-02.adl2z5x.mongodb.net:27017
+explain ran on: ac-sjezljq-shard-00-01.adl2z5x.mongodb.net:27017
+products visible: 240

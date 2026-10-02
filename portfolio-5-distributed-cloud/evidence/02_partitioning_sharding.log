@@ -1,0 +1,82 @@
+Pager usage is off.
+SET
+psql:02_partitioning_sharding.sql:12: NOTICE:  table "orders_by_year" does not exist, skipping
+DROP TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+INSERT 0 120003
+ANALYZE
+### A1  Rows per partition (tableoid tells us which partition stores each row)
+  partition  | count 
+-------------+-------
+ orders_2024 | 43691
+ orders_2025 | 43611
+ orders_2026 | 32701
+(3 rows)
+
+### A2  Partition pruning: a 2025 query should scan ONLY orders_2025
+                                                                         QUERY PLAN                                                                         
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate
+   ->  Seq Scan on orders_2025 orders_by_year
+         Filter: ((order_date >= '2025-03-01 00:00:00-05'::timestamp with time zone) AND (order_date < '2025-04-01 00:00:00-04'::timestamp with time zone))
+(3 rows)
+
+### A3  Without a date filter every partition must be scanned
+                      QUERY PLAN                      
+------------------------------------------------------
+ Aggregate
+   ->  Append
+         ->  Seq Scan on orders_2024 orders_by_year_1
+               Filter: (status = 'pending'::text)
+         ->  Seq Scan on orders_2025 orders_by_year_2
+               Filter: (status = 'pending'::text)
+         ->  Seq Scan on orders_2026 orders_by_year_3
+               Filter: (status = 'pending'::text)
+(8 rows)
+
+psql:02_partitioning_sharding.sql:43: NOTICE:  table "orders_sharded" does not exist, skipping
+DROP TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+INSERT 0 120003
+ANALYZE
+### B1  Even distribution across the 4 "shards"
+     shard      | orders | pct  
+----------------+--------+------
+ orders_shard_0 |  29773 | 24.8
+ orders_shard_1 |  30337 | 25.3
+ orders_shard_2 |  30362 | 25.3
+ orders_shard_3 |  29531 | 24.6
+(4 rows)
+
+### B2  A query that includes the shard key is routed to ONE shard
+                    QUERY PLAN                     
+---------------------------------------------------
+ Bitmap Heap Scan on orders_shard_0 orders_sharded
+   Recheck Cond: (customer_id = 4242)
+   ->  Bitmap Index Scan on orders_shard_0_pkey
+         Index Cond: (customer_id = 4242)
+(4 rows)
+
+### B3  A query WITHOUT the shard key must fan out to all shards (scatter-gather)
+                       QUERY PLAN                        
+---------------------------------------------------------
+ Aggregate
+   ->  Append
+         ->  Seq Scan on orders_shard_0 orders_sharded_1
+               Filter: (total_amount > '5000'::numeric)
+         ->  Seq Scan on orders_shard_1 orders_sharded_2
+               Filter: (total_amount > '5000'::numeric)
+         ->  Seq Scan on orders_shard_2 orders_sharded_3
+               Filter: (total_amount > '5000'::numeric)
+         ->  Seq Scan on orders_shard_3 orders_sharded_4
+               Filter: (total_amount > '5000'::numeric)
+(10 rows)
+
+DROP TABLE

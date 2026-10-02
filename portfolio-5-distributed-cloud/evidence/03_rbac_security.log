@@ -1,0 +1,53 @@
+Pager usage is off.
+DO
+psql:03_rbac_security.sql:21: NOTICE:  role "app_analyst_anna" does not exist, skipping
+psql:03_rbac_security.sql:21: NOTICE:  role "app_stylist_amelie" does not exist, skipping
+psql:03_rbac_security.sql:21: NOTICE:  role "app_web" does not exist, skipping
+DROP ROLE
+psql:03_rbac_security.sql:22: NOTICE:  role "role_analyst" does not exist, skipping
+psql:03_rbac_security.sql:22: NOTICE:  role "role_stylist" does not exist, skipping
+psql:03_rbac_security.sql:22: NOTICE:  role "role_checkout" does not exist, skipping
+DROP ROLE
+CREATE ROLE
+CREATE ROLE
+CREATE ROLE
+CREATE ROLE
+CREATE ROLE
+CREATE ROLE
+REVOKE
+REVOKE
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+=== TEST 1: analyst can aggregate orders
+SET
+ shipping_country | orders 
+------------------+--------
+ DE               |  11229
+ IT               |  11156
+ ZA               |  11081
+(3 rows)
+
+=== TEST 2: analyst tries to read client e-mail addresses (personal data) -> denied
+psql:03_rbac_security.sql:55: ERROR:  permission denied for table customers
+=== TEST 3: analyst tries to read payments -> denied
+psql:03_rbac_security.sql:58: ERROR:  permission denied for table payments
+RESET
+=== TEST 4: stylist may update a fitting outcome
+SET
+UPDATE 1
+=== TEST 5: stylist tries to change an order total -> denied
+psql:03_rbac_security.sql:66: ERROR:  permission denied for table orders
+RESET
+=== TEST 6: checkout service cannot edit stock directly, only through place_order()
+SET
+psql:03_rbac_security.sql:71: ERROR:  permission denied for table variants
+ order_created_through_function 
+--------------------------------
+                         120005
+(1 row)
+
+RESET

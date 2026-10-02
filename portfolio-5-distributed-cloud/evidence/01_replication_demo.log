@@ -1,0 +1,34 @@
+### 0. Checks
+127.0.0.1:5432 - accepting connections
+wal_level on the primary: replica
+### 1. Prepare the primary: a dedicated replication role (least privilege)
+NOTICE:  role "replicator" does not exist, skipping
+### 2. Take a base backup of the primary into a new data directory (-R writes the standby settings)
+### 3. Start the replica on port 5433 (hot standby, so read only queries are allowed)
+waiting for server to start.... done
+server started
+### 4. Replication status as seen from the PRIMARY
+ client_addr |   state   | sync_state 
+-------------+-----------+------------
+ 127.0.0.1   | streaming | async
+(1 row)
+
+### 5. Write on the primary, read from the replica
+primary :
+77
+replica :
+77
+### 6. The replica is read only (writes must go to the primary)
+ERROR:  cannot execute UPDATE in a read-only transaction
+(expected error above)
+pg_is_in_recovery on the replica: t
+### 7. Replication lag: insert 20,000 rows on the primary, then time how long the replica takes to show them all
+primary commit finished after 66 ms
+replica showed all 20000 rows 20 ms after the primary commit (includes one psql start-up per poll)
+### 8. Fail-over: promote the replica to be the new primary
+waiting for server to promote.... done
+server promoted
+replica still in recovery? f
+write accepted on promoted node
+### 9. Clean up the demo replica and restore the value I changed
+done
