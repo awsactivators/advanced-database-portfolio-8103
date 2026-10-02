@@ -1,7 +1,7 @@
 # Advanced Database Systems Portfolio, MIT 8103 (2026/2027)
 
-**Name:** [Amaka Genevieve Jane Awa]  
-**Student ID:** [[301915927]]  
+**Name:** Amaka Genevieve Jane Awa  
+**Student ID:** 301915927  
 **Programme:** Master of Information Technology, Miva Open University  
 **Case study:** Atelier Verane, a simulated made-to-order luxury fashion house with an online shop, fittings for bespoke pieces and clients in 12 countries. All the data is synthetic.
 

@@ -2,8 +2,8 @@
 
 The assessment brief (section 11) requires this declaration wherever AI tools were used.
 
-1. **AI tool used:** [[Claude Sonnet 5.5]]
-2. **What I used it for:** [[I used this AI tool to generate the synthetic data, fine tuned the codes and scripts, correct errored commands, and updated all documentation appropriately.]]
+1. **AI tool used:** Claude Sonnet 5.5
+2. **What I used it for:** I used this AI tool to generate the synthetic data, fine tuned the codes and scripts, correct errored commands, and updated all documentation appropriately.
 3. **How I reviewed, corrected, tested and verified the output:**
    * I installed PostgreSQL, Redis, Python, Graphviz and the MongoDB tools myself and ran every script on my own Mac. The logs and screenshots in my evidence folders come from my own runs.
    * I replaced the figures in the first drafts with my own results, including my query timings, Redis timings, partition counts and replication lag.
